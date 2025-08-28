@@ -6,12 +6,15 @@ import { User, InterviewCategory } from './types';
 import { SparklesIcon } from './components/icons/SparklesIcon';
 import { ArrowPathIcon } from './components/icons/ArrowPathIcon';
 import { LogoutIcon } from './components/icons/LogoutIcon';
+import { getVisitorCount } from './services/googleApiService';
+import { UsersIcon } from './components/icons/UsersIcon';
 
 const App: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<InterviewCategory | null>(null);
   const [selectedQuestion, setSelectedQuestion] = useState<string>('');
   const [isInitialized, setIsInitialized] = useState(false);
+  const [visitorCount, setVisitorCount] = useState<number | null>(null);
 
   // Load user from localStorage on initial render
   useEffect(() => {
@@ -26,6 +29,15 @@ const App: React.FC = () => {
     }
     // We use a state to prevent a flash of the login screen
     setIsInitialized(true); 
+  }, []);
+  
+  // Fetch visitor count on initial load
+  useEffect(() => {
+    const fetchVisitors = async () => {
+      const count = await getVisitorCount();
+      setVisitorCount(count);
+    };
+    fetchVisitors();
   }, []);
 
   const handleOnboardingComplete = (userData: User) => {
@@ -94,6 +106,12 @@ const App: React.FC = () => {
           </h1>
         </div>
         <div className="w-48 text-right flex items-center justify-end gap-4">
+          {visitorCount !== null && (
+            <div className="flex items-center gap-2 text-content-200" title={`${visitorCount} total visits`}>
+              <UsersIcon className="w-5 h-5" />
+              <span className="font-medium text-sm">{visitorCount.toLocaleString()}</span>
+            </div>
+          )}
           {user && selectedCategory && (
             <button onClick={handleNewQuestion} className="inline-flex items-center gap-2 text-sm text-content-200 hover:text-content-100 transition-colors" title="Select New Question">
                 <ArrowPathIcon className="w-5 h-5"/>
