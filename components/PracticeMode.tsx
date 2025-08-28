@@ -15,6 +15,12 @@ import FeedbackDisplay from './FeedbackDisplay';
 import HelpGuide from './HelpGuide';
 import { ListBulletIcon } from './icons/ListBulletIcon';
 import { ChatBubbleQuoteIcon } from './icons/ChatBubbleQuoteIcon';
+import { BoldIcon } from './icons/BoldIcon';
+import { ItalicIcon } from './icons/ItalicIcon';
+import { StrikethroughIcon } from './icons/StrikethroughIcon';
+import { CodeBracketIcon } from './icons/CodeBracketIcon';
+import { OrderedListIcon } from './icons/OrderedListIcon';
+import FormattedMessage from './common/FormattedMessage';
 
 interface PracticeModeProps {
   user: User;
@@ -44,6 +50,8 @@ declare global {
   }
 }
 
+type FormatType = 'bold' | 'italic' | 'strike' | 'code' | 'bullet' | 'quote' | 'ordered';
+
 const PracticeMode: React.FC<PracticeModeProps> = ({ user, category, question }) => {
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
   const [userInput, setUserInput] = useState('');
@@ -64,7 +72,7 @@ const PracticeMode: React.FC<PracticeModeProps> = ({ user, category, question })
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
-    const initialMessage = `Hi ${user.name}, I'm Alex, your interviewer. Let's discuss the following: "${question}". How would you approach this?`;
+    const initialMessage = `Hi ${user.name}, I'm Vaibhav, your interviewer. Let's discuss the following: "${question}". How would you approach this?`;
     // Start the conversation with the bot's introduction
     setChatHistory([{
       sender: 'bot',
@@ -165,30 +173,51 @@ const PracticeMode: React.FC<PracticeModeProps> = ({ user, category, question })
     }
   };
   
-  const handleFormatClick = (format: 'bullet' | 'quote') => {
+  const handleFormatClick = (format: FormatType) => {
     if (!textareaRef.current) return;
     
     const textarea = textareaRef.current;
-    const { selectionStart, value } = textarea;
+    const { selectionStart, selectionEnd, value } = textarea;
+    const selectedText = value.substring(selectionStart, selectionEnd);
     
-    const formatChar = format === 'bullet' ? '-' : '>';
-    
-    const textBeforeCursor = value.substring(0, selectionStart);
-    const atStartOfLine = selectionStart === 0 || textBeforeCursor.endsWith('\n');
-    
-    const textToInsert = atStartOfLine ? `${formatChar} ` : `\n${formatChar} `;
-    
+    let textToInsert = '';
+    let newCursorPos = selectionStart;
+
+    if (format === 'bullet' || format === 'quote' || format === 'ordered') {
+        const formatChar = format === 'bullet' ? '-' : format === 'quote' ? '>' : '1.';
+        const textBeforeCursor = value.substring(0, selectionStart);
+        const atStartOfLine = selectionStart === 0 || textBeforeCursor.endsWith('\n');
+        textToInsert = atStartOfLine ? `${formatChar} ` : `\n${formatChar} `;
+        newCursorPos = selectionStart + textToInsert.length;
+    } else {
+        // Selection-based formatting
+        let prefix = '', suffix = '';
+        switch (format) {
+            case 'bold': prefix = '**'; suffix = '**'; break;
+            case 'italic': prefix = '*'; suffix = '*'; break;
+            case 'strike': prefix = '~~'; suffix = '~~'; break;
+            case 'code': prefix = '`'; suffix = '`'; break;
+        }
+
+        if (selectedText) {
+            textToInsert = prefix + selectedText + suffix;
+            newCursorPos = selectionStart + textToInsert.length;
+        } else {
+            textToInsert = prefix + suffix;
+            newCursorPos = selectionStart + prefix.length;
+        }
+    }
+        
     const newValue = 
         value.substring(0, selectionStart) + 
         textToInsert + 
-        value.substring(selectionStart);
+        value.substring(selectionEnd);
         
     setUserInput(newValue);
     
     // Defer focusing and setting cursor to after the re-render
     setTimeout(() => {
         textarea.focus();
-        const newCursorPos = selectionStart + textToInsert.length;
         textarea.setSelectionRange(newCursorPos, newCursorPos);
     }, 0);
   };
@@ -199,7 +228,7 @@ const PracticeMode: React.FC<PracticeModeProps> = ({ user, category, question })
       setFeedback(null);
       
       const conversation = chatHistory
-        .map(msg => `${msg.sender === 'user' ? user.name : 'Alex'}: ${msg.text}`)
+        .map(msg => `${msg.sender === 'user' ? user.name : 'Vaibhav'}: ${msg.text}`)
         .join('\n\n');
 
       const result = await getAssessment(question, conversation, user, category);
@@ -235,13 +264,13 @@ const PracticeMode: React.FC<PracticeModeProps> = ({ user, category, question })
             {chatHistory.map((msg, index) => (
               <div key={index} className={`flex items-start gap-3 ${msg.sender === 'user' ? 'justify-end' : ''}`}>
                 {msg.sender === 'bot' && <div className="flex-shrink-0 w-8 h-8 rounded-full bg-brand-primary flex items-center justify-center shadow-lg"><BotIcon className="w-5 h-5" /></div>}
-                <div className={`max-w-md md:max-w-lg p-3 rounded-lg border text-base leading-relaxed
+                <div className={`max-w-md md:max-w-lg p-3 rounded-lg border text-base leading-relaxed break-words
                   ${msg.sender === 'user' 
                     ? 'bg-brand-primary/80 backdrop-blur-sm border-brand-secondary text-white rounded-br-none shadow-lg' 
                     : 'bg-base-200/50 backdrop-blur-sm border-base-300 text-content-100 rounded-bl-none shadow-lg'}`
                 }>
                   {msg.isThinking ? <Spinner /> : 
-                   msg.sender === 'bot' ? <Typewriter text={msg.text} /> : <p className="whitespace-pre-wrap">{msg.text}</p>
+                   msg.sender === 'bot' ? <Typewriter text={msg.text} /> : <FormattedMessage text={msg.text} />
                   }
                 </div>
                 {msg.sender === 'user' && <div className="flex-shrink-0 w-8 h-8 rounded-full bg-base-300 flex items-center justify-center shadow-lg"><UserIcon className="w-5 h-5" /></div>}
@@ -252,11 +281,27 @@ const PracticeMode: React.FC<PracticeModeProps> = ({ user, category, question })
           <div className="mt-4 border-t border-base-300 pt-4">
             <div className="bg-base-200 border border-base-300 rounded-lg">
                 <form onSubmit={handleSendMessage}>
-                    <div className="p-2 border-b border-base-300 flex items-center gap-2">
-                        <button type="button" onClick={() => handleFormatClick('bullet')} className="p-1 rounded hover:bg-base-300 disabled:opacity-50" title="Add bullet point" disabled={isLoading}>
+                    <div className="p-2 border-b border-base-300 flex items-center gap-1">
+                        <button type="button" onClick={() => handleFormatClick('bold')} className="p-1 rounded hover:bg-base-300 disabled:opacity-50" title="Bold" disabled={isLoading}>
+                            <BoldIcon className="w-5 h-5 text-content-200" />
+                        </button>
+                         <button type="button" onClick={() => handleFormatClick('italic')} className="p-1 rounded hover:bg-base-300 disabled:opacity-50" title="Italic" disabled={isLoading}>
+                            <ItalicIcon className="w-5 h-5 text-content-200" />
+                        </button>
+                         <button type="button" onClick={() => handleFormatClick('strike')} className="p-1 rounded hover:bg-base-300 disabled:opacity-50" title="Strikethrough" disabled={isLoading}>
+                            <StrikethroughIcon className="w-5 h-5 text-content-200" />
+                        </button>
+                         <button type="button" onClick={() => handleFormatClick('code')} className="p-1 rounded hover:bg-base-300 disabled:opacity-50" title="Code" disabled={isLoading}>
+                            <CodeBracketIcon className="w-5 h-5 text-content-200" />
+                        </button>
+                        <div className="w-px h-5 bg-base-300 mx-1"></div>
+                        <button type="button" onClick={() => handleFormatClick('bullet')} className="p-1 rounded hover:bg-base-300 disabled:opacity-50" title="Bullet list" disabled={isLoading}>
                             <ListBulletIcon className="w-5 h-5 text-content-200" />
                         </button>
-                        <button type="button" onClick={() => handleFormatClick('quote')} className="p-1 rounded hover:bg-base-300 disabled:opacity-50" title="Add quote" disabled={isLoading}>
+                        <button type="button" onClick={() => handleFormatClick('ordered')} className="p-1 rounded hover:bg-base-300 disabled:opacity-50" title="Numbered list" disabled={isLoading}>
+                            <OrderedListIcon className="w-5 h-5 text-content-200" />
+                        </button>
+                        <button type="button" onClick={() => handleFormatClick('quote')} className="p-1 rounded hover:bg-base-300 disabled:opacity-50" title="Blockquote" disabled={isLoading}>
                             <ChatBubbleQuoteIcon className="w-5 h-5 text-content-200" />
                         </button>
                     </div>
