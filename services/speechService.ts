@@ -2,6 +2,7 @@ class SpeechService {
     private synth: SpeechSynthesis;
     private voices: SpeechSynthesisVoice[];
     private utterance: SpeechSynthesisUtterance | null = null;
+    private isUnlocked = false;
 
     constructor() {
         this.synth = window.speechSynthesis;
@@ -15,6 +16,18 @@ class SpeechService {
 
     private loadVoices = () => {
         this.voices = this.synth.getVoices();
+    }
+    
+    public unlockAudio() {
+        if (this.isUnlocked || !this.synth) return;
+
+        // Create a silent utterance and speak it.
+        // This is a common workaround to "unlock" the audio context in browsers
+        // that block audio until a user gesture.
+        const utterance = new SpeechSynthesisUtterance("");
+        utterance.volume = 0;
+        this.synth.speak(utterance);
+        this.isUnlocked = true;
     }
 
     public speak(text: string, onEndCallback?: () => void) {

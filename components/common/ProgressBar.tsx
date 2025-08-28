@@ -30,7 +30,7 @@ const ProgressBar: React.FC<ProgressBarProps> = ({ steps, currentStep }) => {
                   <span className={`font-bold ${isActive ? 'text-white' : 'text-content-200'}`}>{index + 1}</span>
                 )}
               </div>
-              <p className={`mt-2 text-xs font-medium w-20 transition-colors duration-500 ${isActive ? 'text-content-100' : 'text-content-200'}`}>
+              <p className={`mt-2 text-[10px] sm:text-xs font-medium w-16 sm:w-20 leading-tight transition-colors duration-500 ${isActive ? 'text-content-100' : 'text-content-200'}`}>
                 {step}
               </p>
             </div>

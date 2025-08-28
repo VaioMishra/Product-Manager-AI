@@ -13,6 +13,8 @@ import { MicrophoneIcon } from './icons/MicrophoneIcon';
 import Modal from './common/Modal';
 import FeedbackDisplay from './FeedbackDisplay';
 import HelpGuide from './HelpGuide';
+import { ListBulletIcon } from './icons/ListBulletIcon';
+import { ChatBubbleQuoteIcon } from './icons/ChatBubbleQuoteIcon';
 
 interface PracticeModeProps {
   user: User;
@@ -59,6 +61,7 @@ const PracticeMode: React.FC<PracticeModeProps> = ({ user, category, question })
   const [isAssessing, setIsAssessing] = useState(false);
 
   const chatEndRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     const initialMessage = `Hi ${user.name}, I'm Alex, your interviewer. Let's discuss the following: "${question}". How would you approach this?`;
@@ -80,6 +83,15 @@ const PracticeMode: React.FC<PracticeModeProps> = ({ user, category, question })
   }, [chatHistory]);
 
   useEffect(() => {
+    // Auto-resize textarea based on content
+    if (textareaRef.current) {
+      const el = textareaRef.current;
+      el.style.height = 'auto'; // Reset height to shrink when text is deleted
+      el.style.height = `${el.scrollHeight}px`; // Set height to scroll height
+    }
+  }, [userInput]);
+
+  useEffect(() => {
     const SpeechRecognitionAPI = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (SpeechRecognitionAPI) {
       const recognition = new SpeechRecognitionAPI();
@@ -94,6 +106,9 @@ const PracticeMode: React.FC<PracticeModeProps> = ({ user, category, question })
 
       recognition.onerror = (event) => {
         console.error('Speech recognition error:', event.error);
+        if(event.error === 'not-allowed' || event.error === 'service-not-allowed') {
+            alert("Microphone access was denied. Please allow microphone access in your browser settings to use this feature.");
+        }
         setIsListening(false);
       };
 
@@ -106,6 +121,7 @@ const PracticeMode: React.FC<PracticeModeProps> = ({ user, category, question })
 
   const handleMicClick = () => {
     if (!recognitionRef.current) return;
+    speechService.unlockAudio(); // Unlock audio context on user gesture
     if (isListening) {
       recognitionRef.current.stop();
     } else {
@@ -114,15 +130,18 @@ const PracticeMode: React.FC<PracticeModeProps> = ({ user, category, question })
     }
   };
 
-  const handleSendMessage = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSendMessage = async (e?: React.FormEvent) => {
+    e?.preventDefault();
     if (!userInput.trim() || isLoading) return;
 
+    speechService.unlockAudio(); // Unlock audio context on user gesture
     speechService.cancel();
     
-    const newHistory: ChatMessage[] = [...chatHistory, { sender: 'user', text: userInput }];
+    const currentUserInput = userInput;
+    setUserInput(''); // Clear input immediately
+    
+    const newHistory: ChatMessage[] = [...chatHistory, { sender: 'user', text: currentUserInput }];
     setChatHistory(newHistory);
-    setUserInput('');
     setIsLoading(true);
     
     setChatHistory(prev => [...prev, { sender: 'bot', text: '', isThinking: true }]);
@@ -137,6 +156,41 @@ const PracticeMode: React.FC<PracticeModeProps> = ({ user, category, question })
     
     setCurrentStep(botResponsePayload.currentStage);
     setIsLoading(false);
+  };
+  
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        handleSendMessage();
+    }
+  };
+  
+  const handleFormatClick = (format: 'bullet' | 'quote') => {
+    if (!textareaRef.current) return;
+    
+    const textarea = textareaRef.current;
+    const { selectionStart, value } = textarea;
+    
+    const formatChar = format === 'bullet' ? '-' : '>';
+    
+    const textBeforeCursor = value.substring(0, selectionStart);
+    const atStartOfLine = selectionStart === 0 || textBeforeCursor.endsWith('\n');
+    
+    const textToInsert = atStartOfLine ? `${formatChar} ` : `\n${formatChar} `;
+    
+    const newValue = 
+        value.substring(0, selectionStart) + 
+        textToInsert + 
+        value.substring(selectionStart);
+        
+    setUserInput(newValue);
+    
+    // Defer focusing and setting cursor to after the re-render
+    setTimeout(() => {
+        textarea.focus();
+        const newCursorPos = selectionStart + textToInsert.length;
+        textarea.setSelectionRange(newCursorPos, newCursorPos);
+    }, 0);
   };
 
   const handleSubmitForFeedback = async () => {
@@ -167,9 +221,9 @@ const PracticeMode: React.FC<PracticeModeProps> = ({ user, category, question })
     <>
       <Card>
         <div className="p-4 h-[75vh] flex flex-col">
-          <div className="flex justify-between items-center mb-4 border-b border-base-300 pb-3">
+          <div className="flex flex-col sm:flex-row justify-between items-center mb-4 border-b border-base-300 pb-3 gap-4 sm:gap-2">
             <ProgressBar steps={interviewStages} currentStep={currentStep} />
-            <div className="flex gap-2 flex-shrink-0 ml-4">
+            <div className="flex gap-2 flex-shrink-0 sm:ml-4">
                 <Button onClick={() => setIsHelpOpen(true)} variant="secondary" size="sm">Help Me</Button>
                 <Button onClick={handleSubmitForFeedback} disabled={isAssessing || chatHistory.length < 2} size="sm">
                     {isAssessing ? <Spinner /> : 'Submit for Feedback'}
@@ -195,24 +249,45 @@ const PracticeMode: React.FC<PracticeModeProps> = ({ user, category, question })
             ))}
             <div ref={chatEndRef} />
           </div>
-          <form onSubmit={handleSendMessage} className="mt-4 flex gap-2">
-            <input
-              type="text"
-              value={userInput}
-              onChange={(e) => setUserInput(e.target.value)}
-              placeholder={isListening ? "Listening..." : "Type your response..."}
-              className="flex-grow bg-base-200 border border-base-300 rounded-lg p-3 focus:ring-2 focus:ring-brand-primary focus:outline-none"
-              disabled={isLoading}
-            />
-             {recognitionRef.current && (
-                <Button type="button" onClick={handleMicClick} variant="secondary" className="px-3" aria-label="Use microphone">
-                    <MicrophoneIcon className={`w-6 h-6 transition-colors ${isListening ? 'text-red-500 animate-pulse' : 'text-content-200'}`} />
-                </Button>
-            )}
-            <Button type="submit" disabled={isLoading || !userInput.trim()}>
-              {isLoading ? <Spinner /> : 'Send'}
-            </Button>
-          </form>
+          <div className="mt-4 border-t border-base-300 pt-4">
+            <div className="bg-base-200 border border-base-300 rounded-lg">
+                <form onSubmit={handleSendMessage}>
+                    <div className="p-2 border-b border-base-300 flex items-center gap-2">
+                        <button type="button" onClick={() => handleFormatClick('bullet')} className="p-1 rounded hover:bg-base-300 disabled:opacity-50" title="Add bullet point" disabled={isLoading}>
+                            <ListBulletIcon className="w-5 h-5 text-content-200" />
+                        </button>
+                        <button type="button" onClick={() => handleFormatClick('quote')} className="p-1 rounded hover:bg-base-300 disabled:opacity-50" title="Add quote" disabled={isLoading}>
+                            <ChatBubbleQuoteIcon className="w-5 h-5 text-content-200" />
+                        </button>
+                    </div>
+                    <div className="flex gap-2 p-2 items-end">
+                        <textarea
+                            ref={textareaRef}
+                            value={userInput}
+                            onChange={(e) => setUserInput(e.target.value)}
+                            onKeyDown={handleKeyDown}
+                            placeholder={isListening ? "Listening..." : "Type your response... (Shift+Enter for new line)"}
+                            className="flex-grow bg-transparent focus:outline-none resize-none overflow-y-auto max-h-40"
+                            disabled={isLoading}
+                            rows={1}
+                        />
+                        <div className="flex-shrink-0 flex items-center gap-2">
+                            {recognitionRef.current && (
+                                <Button type="button" onClick={handleMicClick} variant="secondary" className="px-2.5 py-2.5" aria-label="Use microphone" title="Use microphone" disabled={isLoading}>
+                                    <MicrophoneIcon className={`w-5 h-5 transition-colors ${isListening ? 'text-red-500 animate-pulse' : 'text-content-200'}`} />
+                                </Button>
+                            )}
+                            <Button type="submit" disabled={isLoading || !userInput.trim()}>
+                                {isLoading ? <Spinner /> : 'Send'}
+                            </Button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <p className="text-xs text-content-200 text-center mt-2 md:hidden">
+              Note: Voice input and narration may have limitations on mobile browsers.
+            </p>
+          </div>
         </div>
       </Card>
 

@@ -95,33 +95,33 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-base-100 font-sans flex flex-col items-center p-4 sm:p-6 lg:p-8">
-      <header className="w-full max-w-7xl mb-8 flex items-center justify-between">
-        <div className="w-48 text-left">
-           {user && <p className="text-content-200 truncate" title={user.name}>Welcome, {user.name}!</p>}
+      <header className="w-full max-w-7xl mb-8 flex items-center justify-between gap-2">
+        <div className="flex-1 text-left">
+           {user && <p className="text-content-200 truncate hidden md:block" title={user.name}>Welcome, {user.name}!</p>}
         </div>
-        <div className="flex items-center gap-3">
-          <SparklesIcon className="w-8 h-8 text-brand-primary" />
-          <h1 className="text-3xl sm:text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-brand-primary to-brand-secondary">
+        <div className="flex-shrink-0 flex items-center gap-2 sm:gap-3">
+          <SparklesIcon className="w-7 h-7 sm:w-8 sm:h-8 text-brand-primary" />
+          <h1 className="text-2xl sm:text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-brand-primary to-brand-secondary text-center">
             PM Interview Coach
           </h1>
         </div>
-        <div className="w-48 text-right flex items-center justify-end gap-4">
+        <div className="flex-1 text-right flex items-center justify-end gap-2 md:gap-4">
           {visitorCount !== null && (
             <div className="flex items-center gap-2 text-content-200" title={`${visitorCount} total visits`}>
               <UsersIcon className="w-5 h-5" />
-              <span className="font-medium text-sm">{visitorCount.toLocaleString()}</span>
+              <span className="font-medium text-sm hidden md:inline">{visitorCount.toLocaleString()}</span>
             </div>
           )}
           {user && selectedCategory && (
             <button onClick={handleNewQuestion} className="inline-flex items-center gap-2 text-sm text-content-200 hover:text-content-100 transition-colors" title="Select New Question">
                 <ArrowPathIcon className="w-5 h-5"/>
-                New Question
+                <span className="hidden md:inline">New Question</span>
             </button>
           )}
           {user && (
              <button onClick={handleLogout} className="inline-flex items-center gap-2 text-sm text-content-200 hover:text-content-100 transition-colors" title="Logout">
                 <LogoutIcon className="w-5 h-5"/>
-                Logout
+                <span className="hidden md:inline">Logout</span>
             </button>
           )}
         </div>
