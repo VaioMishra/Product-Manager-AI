@@ -1,8 +1,10 @@
 
-import React from 'react';
-import { User, InterviewCategory } from '../types';
+import React, { useState } from 'react';
+import { User, InterviewCategory, FlowStep } from '../types';
 import PracticeMode from './PracticeMode';
 import Button from './common/Button';
+import Tabs from './common/Tabs';
+import AiArchitectDiagram from './AiArchitectDiagram';
 
 interface InterviewScreenProps {
   user: User;
@@ -12,10 +14,28 @@ interface InterviewScreenProps {
 }
 
 const InterviewScreen: React.FC<InterviewScreenProps> = ({ user, category, question, onBack }) => {
+  const [activeTab, setActiveTab] = useState('practice');
+  const [currentStep, setCurrentStep] = useState<FlowStep>('idle');
+  const [isPlaying, setIsPlaying] = useState(true);
+
+  const handleFlowChange = (step: FlowStep) => {
+    if (isPlaying) {
+      setCurrentStep(step);
+      // Reset after a delay to create a pulse effect
+      if (step !== 'idle') {
+        setTimeout(() => setCurrentStep('idle'), 2000);
+      }
+    }
+  };
+  
+  const tabs = [
+    { id: 'practice', label: 'Practice Mode' },
+    { id: 'architect', label: 'AI Architect' },
+  ];
 
   return (
-    <div className="animate-fade-in">
-      <div className="mb-6 p-6 bg-base-200 border border-base-300 rounded-lg shadow-md">
+    <div className="animate-fade-in space-y-6">
+      <div className="p-6 bg-base-200 border border-base-300 rounded-lg shadow-md">
         <div className="flex justify-between items-start">
             <div>
                 <p className="text-sm font-semibold text-brand-primary">{category}</p>
@@ -27,11 +47,25 @@ const InterviewScreen: React.FC<InterviewScreenProps> = ({ user, category, quest
         </div>
       </div>
 
-      <PracticeMode 
-          user={user} 
-          category={category} 
-          question={question} 
-      />
+      <Tabs tabs={tabs} activeTab={activeTab} onTabClick={setActiveTab} />
+
+      <div className="mt-6">
+        <div className={activeTab === 'practice' ? 'block' : 'hidden'}>
+           <PracticeMode 
+              user={user} 
+              category={category} 
+              question={question}
+              onFlowChange={handleFlowChange}
+          />
+        </div>
+        <div className={activeTab === 'architect' ? 'block' : 'hidden'}>
+          <AiArchitectDiagram 
+            currentStep={currentStep}
+            isPlaying={isPlaying}
+            onTogglePlay={() => setIsPlaying(!isPlaying)}
+          />
+        </div>
+      </div>
     </div>
   );
 };

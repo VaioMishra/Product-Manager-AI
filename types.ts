@@ -37,3 +37,5 @@ export interface Question {
   company: string;
   difficulty: 'Easy' | 'Medium' | 'Hard';
 }
+
+export type FlowStep = 'idle' | 'user_to_service' | 'service_to_api' | 'api_to_service' | 'service_to_ui';

@@ -55,33 +55,45 @@ class SpeechService {
                 }
             };
 
-            // Prefer a high-quality, Indian male voice if available.
-            const findIndianMaleVoice = () => {
+            // Prefer a high-quality US Male voice.
+            const findUSMaleVoice = () => {
                 const allVoices = this.synth.getVoices();
                 if (allVoices.length === 0) return null;
                 
-                // Ideal: Google voice for quality, Indian, Male
-                let voice = allVoices.find(v => v.lang === 'en-IN' && v.name.toLowerCase().includes('google') && (v as any).gender === 'male');
+                // Common keywords for male voices in Web Speech API
+                const maleVoiceKeywords = ['male', 'david', 'mark', 'google us english'];
+
+                // Filter for US English voices first
+                const usVoices = allVoices.filter(v => v.lang === 'en-US');
+                if (usVoices.length === 0) return null;
+
+                // 1. Prioritize Google's high-quality male voices.
+                let voice = usVoices.find(v =>
+                    v.name.toLowerCase().includes('google') &&
+                    maleVoiceKeywords.some(keyword => v.name.toLowerCase().includes(keyword))
+                );
+                if (voice) return voice;
+                
+                // 2. Fallback to any US voice that sounds male based on name.
+                voice = usVoices.find(v => maleVoiceKeywords.some(keyword => v.name.toLowerCase().includes(keyword)));
                 if (voice) return voice;
 
-                // Fallback: Any Indian Male voice
-                voice = allVoices.find(v => v.lang === 'en-IN' && (v as any).gender === 'male');
+                // 3. As a strong fallback, use the primary "Google US English" voice if available.
+                voice = usVoices.find(v => v.name === 'Google US English');
                 if (voice) return voice;
-                
-                // Fallback: Any Indian voice
-                voice = allVoices.find(v => v.lang === 'en-IN');
-                if (voice) return voice;
-                
-                return null; // Return null if no Indian voice found
+
+                // 4. If none of the above, just pick the first available US voice.
+                return usVoices[0];
             };
 
-            const preferredVoice = findIndianMaleVoice() || this.voices.find(v => v.name === 'Google US English') || this.voices.find(v => v.lang.startsWith('en-US')) || this.voices.find(v => v.lang.startsWith('en-GB')) || this.voices[0];
+            const preferredVoice = findUSMaleVoice() || this.voices.find(v => v.lang.startsWith('en-US')) || this.voices.find(v => v.lang.startsWith('en-GB')) || this.voices[0];
             
             if (preferredVoice) {
                 this.utterance.voice = preferredVoice;
             }
-            this.utterance.rate = 1;
-            this.utterance.pitch = 1.1;
+            // Adjusted for a natural, mid-range male voice.
+            this.utterance.rate = 1.0;
+            this.utterance.pitch = 0.9;
 
             this.synth.speak(this.utterance);
         }

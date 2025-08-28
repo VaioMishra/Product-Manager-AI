@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { User, InterviewCategory, ChatMessage, Feedback } from '../types';
+import { User, InterviewCategory, ChatMessage, Feedback, FlowStep } from '../types';
 import { getInterviewResponse, getAssessment } from '../services/geminiService';
 import { speechService } from '../services/speechService';
 import Button from './common/Button';
@@ -25,6 +25,7 @@ interface PracticeModeProps {
   user: User;
   category: InterviewCategory;
   question: string;
+  onFlowChange: (step: FlowStep) => void;
 }
 
 // FIX: Added type definitions for the Web Speech API to fix "Cannot find name 'SpeechRecognition'" errors.
@@ -51,7 +52,7 @@ declare global {
 
 type FormatType = 'bold' | 'italic' | 'strike' | 'code' | 'bullet' | 'quote' | 'ordered';
 
-const PracticeMode: React.FC<PracticeModeProps> = ({ user, category, question }) => {
+const PracticeMode: React.FC<PracticeModeProps> = ({ user, category, question, onFlowChange }) => {
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
   const [userInput, setUserInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -149,13 +150,17 @@ const PracticeMode: React.FC<PracticeModeProps> = ({ user, category, question })
     
     const newHistory: ChatMessage[] = [...chatHistory, { sender: 'user', text: currentUserInput }];
     setChatHistory(newHistory);
+    onFlowChange('user_to_service');
     setIsLoading(true);
     
     setChatHistory(prev => [...prev, { sender: 'bot', text: '', isThinking: true }]);
 
+    onFlowChange('service_to_api');
     const botResponsePayload = await getInterviewResponse(newHistory, question, user, category);
+    onFlowChange('api_to_service');
     
     setChatHistory(prev => [...prev.slice(0, -1), { sender: 'bot', text: botResponsePayload.responseText }]);
+    onFlowChange('service_to_ui');
     
     if (chatHistory.length > 1) { // Don't narrate the very first message
         speechService.speak(botResponsePayload.responseText);

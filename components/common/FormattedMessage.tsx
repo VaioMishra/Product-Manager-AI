@@ -1,57 +1,110 @@
 import React from 'react';
 
-// A simple component to render text with basic markdown-like formatting.
-// This is not a full markdown parser but handles the common cases for this app.
+// Enhanced component to render text with markdown-like formatting.
+// This version properly groups multi-line lists and blockquotes,
+// and ensures correct rendering of inline code, bold, italics, etc.
 const FormattedMessage: React.FC<{ text: string }> = ({ text }) => {
   const lines = text.split('\n');
-  const elements = [];
+  const elements: React.ReactNode[] = [];
+
+  // Buffers for grouping consecutive block-level elements
   let listType: 'ul' | 'ol' | null = null;
   let listItems: React.ReactNode[] = [];
+  let inBlockquote = false;
+  let blockquoteItems: React.ReactNode[] = [];
 
   const processInlineFormatting = (line: string): React.ReactNode => {
-    // Use dangerouslySetInnerHTML with simple replacements for inline styles.
+    // Added font-mono for better code readability.
     const html = line
-      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') // Basic HTML escape
-      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-      .replace(/\*(.*?)\*/g, '<em>$1</em>')
-      .replace(/~~(.*?)~~/g, '<s>$1</s>')
-      .replace(/`(.*?)`/g, '<code class="bg-base-300 text-brand-secondary px-1 py-0.5 rounded text-sm">$1</code>');
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;') // Basic HTML escape
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') // Bold
+      .replace(/\*(.*?)\*/g, '<em>$1</em>')       // Italic
+      .replace(/~~(.*?)~~/g, '<s>$1</s>')         // Strikethrough
+      .replace(
+        /`(.*?)`/g,
+        '<code class="bg-base-300 text-brand-secondary px-1 py-0.5 rounded text-sm font-mono">$1</code>'
+      ); // Inline Code
     return <span dangerouslySetInnerHTML={{ __html: html }} />;
   };
 
+  // Flushes only the list buffer
   const flushList = () => {
     if (listItems.length > 0) {
-      if (listType === 'ul') {
-        elements.push(<ul key={`list-${elements.length}`} className="list-disc pl-5 space-y-1">{listItems}</ul>);
-      } else if (listType === 'ol') {
-        elements.push(<ol key={`list-${elements.length}`} className="list-decimal pl-5 space-y-1">{listItems}</ol>);
-      }
-      listItems = [];
-      listType = null;
+      const ListComponent = listType === 'ul' ? 'ul' : 'ol';
+      const listClasses = listType === 'ul' ? 'list-disc' : 'list-decimal';
+      elements.push(
+        <ListComponent key={`list-${elements.length}`} className={`${listClasses} pl-5 space-y-1 my-2`}>
+          {listItems}
+        </ListComponent>
+      );
     }
+    listItems = [];
+    listType = null;
+  };
+
+  // Flushes only the blockquote buffer
+  const flushBlockquote = () => {
+    if (blockquoteItems.length > 0) {
+      elements.push(
+        <blockquote key={`quote-${elements.length}`} className="pl-4 border-l-4 border-base-300 text-content-200 my-2">
+          {blockquoteItems}
+        </blockquote>
+      );
+    }
+    blockquoteItems = [];
+    inBlockquote = false;
   };
 
   lines.forEach((line, index) => {
-    if (line.startsWith('- ')) {
-      if (listType !== 'ul') flushList();
+    const isUnorderedItem = line.startsWith('- ');
+    const isOrderedItem = /^\d+\.\s*/.test(line);
+    const isBlockquoteItem = line.startsWith('> ');
+
+    // Case 1: Unordered List
+    if (isUnorderedItem) {
+      if (listType !== 'ul') {
+        flushList();
+        flushBlockquote();
+      }
       listType = 'ul';
+      inBlockquote = false;
       listItems.push(<li key={index}>{processInlineFormatting(line.substring(2))}</li>);
-    } else if (/^\d+\.\s*/.test(line)) {
-      if (listType !== 'ol') flushList();
+    }
+    // Case 2: Ordered List
+    else if (isOrderedItem) {
+      if (listType !== 'ol') {
+        flushList();
+        flushBlockquote();
+      }
       listType = 'ol';
+      inBlockquote = false;
       listItems.push(<li key={index}>{processInlineFormatting(line.replace(/^\d+\.\s*/, ''))}</li>);
-    } else if (line.startsWith('> ')) {
+    }
+    // Case 3: Blockquote
+    else if (isBlockquoteItem) {
+      if (!inBlockquote) {
+        flushList();
+        flushBlockquote();
+      }
+      inBlockquote = true;
+      listType = null;
+      blockquoteItems.push(<p key={index} className="italic">{processInlineFormatting(line.substring(2))}</p>);
+    }
+    // Case 4: Paragraph or empty line
+    else {
       flushList();
-      elements.push(<blockquote key={index} className="pl-4 border-l-4 border-base-300 italic text-content-200">{processInlineFormatting(line.substring(2))}</blockquote>);
-    } else {
-      flushList();
-      // Use a non-breaking space for empty lines to ensure they take up space
+      flushBlockquote();
+      // Use a non-breaking space for empty lines to ensure they take up space and create paragraph breaks.
       const content = line.trim() === '' ? '\u00A0' : processInlineFormatting(line);
       elements.push(<p key={index}>{content}</p>);
     }
   });
 
-  flushList(); // Flush any remaining list items
+  // Flush any remaining buffers at the end
+  flushList();
+  flushBlockquote();
 
   return <>{elements}</>;
 };
