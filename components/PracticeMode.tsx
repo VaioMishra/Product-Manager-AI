@@ -8,7 +8,6 @@ import Card from './common/Card';
 import { UserIcon } from './icons/UserIcon';
 import { BotIcon } from './icons/BotIcon';
 import ProgressBar from './common/ProgressBar';
-import Typewriter from './common/Typewriter';
 import { MicrophoneIcon } from './icons/MicrophoneIcon';
 import Modal from './common/Modal';
 import FeedbackDisplay from './FeedbackDisplay';
@@ -269,9 +268,7 @@ const PracticeMode: React.FC<PracticeModeProps> = ({ user, category, question })
                     ? 'bg-brand-primary/80 backdrop-blur-sm border-brand-secondary text-white rounded-br-none shadow-lg' 
                     : 'bg-base-200/50 backdrop-blur-sm border-base-300 text-content-100 rounded-bl-none shadow-lg'}`
                 }>
-                  {msg.isThinking ? <Spinner /> : 
-                   msg.sender === 'bot' ? <Typewriter text={msg.text} /> : <FormattedMessage text={msg.text} />
-                  }
+                  {msg.isThinking ? <Spinner /> : <FormattedMessage text={msg.text} /> }
                 </div>
                 {msg.sender === 'user' && <div className="flex-shrink-0 w-8 h-8 rounded-full bg-base-300 flex items-center justify-center shadow-lg"><UserIcon className="w-5 h-5" /></div>}
               </div>

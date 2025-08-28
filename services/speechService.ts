@@ -55,8 +55,28 @@ class SpeechService {
                 }
             };
 
-            // Prefer a high-quality voice
-            const preferredVoice = this.voices.find(v => v.name === 'Google US English') || this.voices.find(v => v.lang.startsWith('en-US')) || this.voices.find(v => v.lang.startsWith('en-GB')) || this.voices[0];
+            // Prefer a high-quality, Indian male voice if available.
+            const findIndianMaleVoice = () => {
+                const allVoices = this.synth.getVoices();
+                if (allVoices.length === 0) return null;
+                
+                // Ideal: Google voice for quality, Indian, Male
+                let voice = allVoices.find(v => v.lang === 'en-IN' && v.name.toLowerCase().includes('google') && (v as any).gender === 'male');
+                if (voice) return voice;
+
+                // Fallback: Any Indian Male voice
+                voice = allVoices.find(v => v.lang === 'en-IN' && (v as any).gender === 'male');
+                if (voice) return voice;
+                
+                // Fallback: Any Indian voice
+                voice = allVoices.find(v => v.lang === 'en-IN');
+                if (voice) return voice;
+                
+                return null; // Return null if no Indian voice found
+            };
+
+            const preferredVoice = findIndianMaleVoice() || this.voices.find(v => v.name === 'Google US English') || this.voices.find(v => v.lang.startsWith('en-US')) || this.voices.find(v => v.lang.startsWith('en-GB')) || this.voices[0];
+            
             if (preferredVoice) {
                 this.utterance.voice = preferredVoice;
             }

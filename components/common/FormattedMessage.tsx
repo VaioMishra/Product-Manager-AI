@@ -36,10 +36,10 @@ const FormattedMessage: React.FC<{ text: string }> = ({ text }) => {
       if (listType !== 'ul') flushList();
       listType = 'ul';
       listItems.push(<li key={index}>{processInlineFormatting(line.substring(2))}</li>);
-    } else if (/^\d+\. /.test(line)) {
+    } else if (/^\d+\.\s*/.test(line)) {
       if (listType !== 'ol') flushList();
       listType = 'ol';
-      listItems.push(<li key={index}>{processInlineFormatting(line.replace(/^\d+\. /, ''))}</li>);
+      listItems.push(<li key={index}>{processInlineFormatting(line.replace(/^\d+\.\s*/, ''))}</li>);
     } else if (line.startsWith('> ')) {
       flushList();
       elements.push(<blockquote key={index} className="pl-4 border-l-4 border-base-300 italic text-content-200">{processInlineFormatting(line.substring(2))}</blockquote>);

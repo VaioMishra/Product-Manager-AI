@@ -49,8 +49,8 @@ The interview question is: "${question}" (${category}).
 
 **Technical Instructions:**
 - **Response Format:** Your entire output must be a single, valid JSON object.
-- **No Markdown:** Do not use any markdown formatting (like *, #, etc.) in your \`responseText\`. Use plain text with natural paragraphs and line breaks.
-- **Stage Analysis:** Based on the user's latest message and the full conversation history, determine which stage of the interview we are in. The stages are: ${stages.join(', ')}. Provide the 0-indexed integer for the current stage.`;
+- **Formatting:** In your \`responseText\`, use simple markdown for emphasis: **bold** and *italics*. For lists, use standard markdown bullets (-) or numbers (e.g., "1.", "2.").
+- **IMPORTANT**: Do not leave blank lines between list items, as this can break the list's formatting on the user's screen.`;
     
     const contents = chatHistory.map(msg => ({
         role: msg.sender === 'user' ? 'user' : 'model',
@@ -67,7 +67,7 @@ The interview question is: "${question}" (${category}).
                 responseSchema: {
                     type: Type.OBJECT,
                     properties: {
-                        responseText: { type: Type.STRING, description: "Your conversational reply to the user." },
+                        responseText: { type: Type.STRING, description: "Your conversational reply to the user, using simple markdown for formatting." },
                         currentStage: { type: Type.NUMBER, description: `The 0-indexed integer of the current interview stage (0-4). Stages: ${stages.join(', ')}` }
                     },
                     required: ["responseText", "currentStage"]
@@ -104,9 +104,10 @@ export const getFrameworkExplanation = async (
     Explain, step-by-step, how a candidate should approach this using ${framework}.
     Break down each stage of the framework with 1-2 sentences explaining what to do in that stage.
     Keep it concise, actionable, and easy to understand.
-    **Formatting Rules (Strictly Enforced):**
-    - **ABSOLUTELY NO MARKDOWN.** Do not use '*', '#', '-', etc.
-    - Use clear headings for each step (e.g., "Step 1: Clarify the Goal").
+    **Formatting Rules:**
+    - Use simple markdown for lists (e.g., "- item" or "1. item").
+    - You can use **bold** for emphasis.
+    - Do not use markdown headings (#). Use plain text headings followed by a new line.
     - Use paragraphs and line breaks for readability.
     `;
 
@@ -134,11 +135,10 @@ export const getSampleAnswer = async (question: string, user: User, category: In
 
     Your task is to generate a well-structured, expert-level sample answer.
 
-    **Formatting Rules (Strictly Enforced):**
+    **Formatting Rules:**
     - **START by stating the framework used.** For example: "Framework Used: The CIRCLES Method". This must be the first line.
-    - **ABSOLUTELY NO MARKDOWN.** Do not use '*', '#', '-', or any other markdown syntax.
+    - Use simple markdown for emphasis (**bold**) and lists (- or 1.).
     - Use strong, clear headings for different sections of the answer that correspond to the framework's steps. For example, write "Clarifying Questions" or "Solution Brainstorm" as plain text headings, followed by a new line.
-    - For lists, write them out in full sentences or use numbered lists with actual numbers and periods (e.g., "1. First, I would..."). Do not use markdown-style lists.
     - Ensure the output is clean, professional, and ready to be displayed directly in an HTML container. Use paragraphs and line breaks for readability.
     - The tone should be that of an experienced Product Manager presenting a case.
     `;
