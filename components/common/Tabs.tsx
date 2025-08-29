@@ -1,4 +1,3 @@
-
 import React from 'react';
 
 interface Tab {
@@ -14,7 +13,7 @@ interface TabsProps {
 
 const Tabs: React.FC<TabsProps> = ({ tabs, activeTab, onTabClick }) => {
   return (
-    <div className="border-b border-base-300">
+    <div className="border-b border-border-primary">
       <nav className="-mb-px flex space-x-6" aria-label="Tabs">
         {tabs.map((tab) => (
           <button
@@ -23,7 +22,7 @@ const Tabs: React.FC<TabsProps> = ({ tabs, activeTab, onTabClick }) => {
             className={`${
               activeTab === tab.id
                 ? 'border-brand-primary text-brand-primary'
-                : 'border-transparent text-content-200 hover:text-content-100 hover:border-gray-300'
+                : 'border-transparent text-text-secondary hover:text-text-primary hover:border-gray-300'
             } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-lg transition-colors focus:outline-none`}
           >
             {tab.label}

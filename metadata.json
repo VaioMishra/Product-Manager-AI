@@ -1,5 +1,5 @@
 {
-  "name": "PM Interview Coach",
+  "name": "Vaio",
   "description": "An AI-powered coach to help aspiring Product Managers ace their interviews for Product Sense, RCA, Design, Strategy, and Estimation questions. Features guided practice, mock assessments, and detailed feedback.",
   "requestFramePermissions": [
     "microphone"

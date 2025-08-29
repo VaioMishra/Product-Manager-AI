@@ -2,8 +2,6 @@ import { GoogleGenAI, Type, GenerateContentResponse } from "@google/genai";
 import { ChatMessage, Feedback, User, InterviewCategory } from '../types';
 
 if (!process.env.API_KEY) {
-  // In a real app, you'd want to handle this more gracefully.
-  // For this context, we'll throw an error if the key isn't set.
   throw new Error("API_KEY environment variable not set.");
 }
 
@@ -33,7 +31,7 @@ export const getInterviewResponse = async (
 ): Promise<InterviewResponsePayload> => {
     const framework = getFrameworkForCategory(category);
     const stages = ["Clarify", "Structure", "Ideate", "Prioritize", "Summarize"];
-    const systemInstruction = `You are Vaibhav, an expert and friendly Product Manager Interview Coach from a top tech company. Your mission is to provide a deeply realistic, helpful, and human-like mock interview experience for ${user.name}, a candidate with ${user.yoe} years of experience.
+    const systemInstruction = `You are Vaio (Vocal AI Orchestrator), an expert and friendly Product Manager Interview Coach from a top tech company. Your mission is to provide a deeply realistic, helpful, and human-like mock interview experience for ${user.name}, a candidate with ${user.yoe} years of experience.
 
 The interview question is: "${question}" (${category}).
 
@@ -52,14 +50,7 @@ The interview question is: "${question}" (${category}).
 **Technical Instructions:**
 - **RESPONSE FORMAT:** Your entire output must be a single, valid JSON object. Do not include any text or markdown outside of the JSON structure.
 - **MARKDOWN USAGE:** In your \`responseText\`, feel free to use simple markdown for clarity and emphasis: **bold** for key terms and *italics* for nuanced points. For lists, use standard markdown bullets (-) or numbers (1., 2., 3.).
-- **LIST FORMATTING RULE:** To ensure lists render correctly, **do not** place empty lines between list items.
-  - Correct:
-    1. First item
-    2. Second item
-  - Incorrect:
-    1. First item
-
-    2. Second item`;
+- **LIST FORMATTING RULE:** To ensure lists render correctly, **do not** place empty lines between list items.`;
     
     const contents = chatHistory.map(msg => ({
         role: msg.sender === 'user' ? 'user' : 'model',
@@ -86,7 +77,6 @@ The interview question is: "${question}" (${category}).
         const jsonText = response.text.trim();
         const parsedResponse = JSON.parse(jsonText);
         
-        // Clamp the stage value to be safe
         if (parsedResponse.currentStage < 0 || parsedResponse.currentStage >= stages.length) {
             parsedResponse.currentStage = 0;
         }
@@ -97,10 +87,121 @@ The interview question is: "${question}" (${category}).
         console.error("Error generating interview response:", error);
         return {
             responseText: "I'm sorry, I encountered an error. Could you please rephrase your response?",
-            currentStage: chatHistory.length > 2 ? chatHistory.length - 2 : 0, // try to guess stage or reset
+            currentStage: chatHistory.length > 2 ? chatHistory.length - 2 : 0,
         };
     }
 };
+
+export const generateQuestionsFromResume = async (file: { mimeType: string, data: string }, user: User): Promise<{ isResumeValid: boolean; profileSummary: string; questions: string[] }> => {
+    const systemInstruction = `You are an expert Product Manager hiring manager at a top tech company. Your task is to analyze the attached document for a candidate named ${user.name} with ${user.yoe} years of experience.
+
+**Instructions:**
+1.  **VALIDATE THE DOCUMENT:** First, determine if the document is a professional resume or CV. It should contain sections like "Experience," "Education," "Skills," etc. A random document, an image, an essay, or a personal letter is NOT a valid resume.
+2.  **IF VALID:**
+    - Set 'isResumeValid' to true.
+    - Analyze the resume deeply. Look for impact, metrics, and specific technologies.
+    - Create a 2-3 sentence 'profileSummary' of the candidate's profile.
+    - Generate a list of 8-10 insightful 'questions' tailored to their background, including a mix of product sense, behavioral, strategy, analytical, and execution questions.
+3.  **IF NOT VALID:**
+    - Set 'isResumeValid' to false.
+    - Set 'profileSummary' to an empty string.
+    - Set 'questions' to an empty array.
+4.  **Output Format:** Your entire output must be a single, valid JSON object. Do not include any text or markdown outside the JSON structure.
+`;
+
+    const resumePart = { inlineData: { mimeType: file.mimeType, data: file.data } };
+    const textPart = { text: "Please validate and analyze the attached document based on the system instructions provided." };
+
+    try {
+        const response: GenerateContentResponse = await ai.models.generateContent({
+            model: 'gemini-2.5-flash',
+            contents: { parts: [resumePart, textPart] },
+            config: {
+                systemInstruction,
+                responseMimeType: "application/json",
+                responseSchema: {
+                    type: Type.OBJECT,
+                    properties: {
+                        isResumeValid: {
+                            type: Type.BOOLEAN,
+                            description: "True if the document is a valid professional resume/CV, false otherwise."
+                        },
+                        profileSummary: {
+                            type: Type.STRING,
+                            description: "A 2-3 sentence professional summary. Empty if the resume is not valid."
+                        },
+                        questions: {
+                            type: Type.ARRAY,
+                            description: "An array of 8-10 tailored interview questions. Empty if the resume is not valid.",
+                            items: { type: Type.STRING }
+                        }
+                    },
+                    required: ["isResumeValid", "profileSummary", "questions"]
+                }
+            },
+        });
+
+        const jsonText = response.text.trim();
+        const parsed = JSON.parse(jsonText);
+        return parsed as { isResumeValid: boolean; profileSummary: string; questions: string[] };
+
+    } catch (error) {
+        console.error("Error generating questions from resume:", error);
+        return {
+            isResumeValid: true, // Default to true on error to avoid penalizing user for API issues
+            profileSummary: `A candidate with ${user.yoe} years of experience.`,
+            questions: ["How would you improve your favorite product?", "Tell me about a challenging project you worked on."]
+        };
+    }
+};
+
+export const getFullInterviewResponse = async (
+    chatHistory: ChatMessage[],
+    user: User,
+    profileSummary: string,
+    questionPool: string[]
+): Promise<string> => {
+    const systemInstruction = `You are Vaio (Vocal AI Orchestrator), a senior PM interviewer conducting a realistic, 45-minute voice-only mock interview with ${user.name}.
+
+**Candidate Context:**
+- **Name:** ${user.name}
+- **Years of Experience:** ${user.yoe}
+- **Resume Summary:** ${profileSummary}
+
+**Your Task & Persona:**
+Your goal is to conduct a natural, conversational interview. You are not a robot asking a list of questions. You are a human interviewer trying to understand the candidate's skills.
+
+**Interview Flow:**
+1.  **If this is the first turn (history has 1 message), your response MUST be a warm-up question.** Ask the candidate to walk you through their resume or tell you about themselves.
+2.  **Listen and Adapt:** Pay close attention to the candidate's answers in the chat history.
+3.  **Select Questions Naturally:** After the warm-up, select a question from the provided Question Pool that logically follows the conversation. You don't have to ask them in order.
+4.  **Ask Follow-Ups:** Don't just move to the next question. Dig deeper. Ask "why," "what was the impact," "what would you do differently," "what data supports that?" This is critical.
+5.  **Transition Smoothly:** Use conversational phrases to move between topics (e.g., "That's helpful context. Shifting gears a bit, I'd like to ask about...", "Okay, let's talk about your experience with...").
+6.  **Manage Time:** You do not need to ask all the questions in the pool. A good interview covers 3-5 topics in depth.
+7.  **Keep it Concise:** Your response should ONLY be your next question or statement to the candidate.
+
+**Question Pool (Use as a guide, not a script):**
+${questionPool.map(q => `- ${q}`).join('\n')}
+`;
+    
+    const contents = chatHistory.map(msg => ({
+        role: msg.sender === 'user' ? 'user' : 'model',
+        parts: [{ text: msg.text }]
+    }));
+
+    try {
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.5-flash',
+            contents: contents,
+            config: { systemInstruction },
+        });
+        return response.text;
+    } catch (error) {
+        console.error("Error in full interview response generation:", error);
+        return "I'm sorry, I seem to have lost my train of thought. Could you summarize your last point for me?";
+    }
+}
+
 
 export const getFrameworkExplanation = async (
     question: string,
@@ -171,8 +272,9 @@ export const getAssessment = async (
     question: string,
     conversationHistory: string,
     user: User,
-    category: InterviewCategory
+    category: InterviewCategory | 'Full Interview'
 ): Promise<Feedback | null> => {
+    const isFullInterview = category === 'Full Interview';
     const systemInstruction = `You are a FAANG Product Manager Interview Bar Raiser.
     You are evaluating a candidate named ${user.name} with ${user.yoe} years of experience.
     The question was about "${question}" (${category}).
@@ -180,6 +282,7 @@ export const getAssessment = async (
     Your task is to provide structured feedback in JSON format based on their entire conversation.
     - Evaluate their thought process, clarifying questions, and conclusions as a whole.
     - Assign a score from 1 (poor) to 10 (excellent) for each criterion: structure, creativity, strategy, prioritization, and communication.
+    ${isFullInterview ? '- Provide an overallRating on a scale of 1 to 5, where 1 is "Needs Significant Improvement" and 5 is "Strong Hire".' : ''}
     - Provide 2-3 specific, actionable bullet points for strengths, weaknesses, and areas for improvement.
     - Be constructive and encouraging in your feedback.
     The candidate's conversation is:
@@ -187,6 +290,26 @@ export const getAssessment = async (
     ${conversationHistory}
     ---
     `;
+
+    const properties: any = {
+        strengths: { type: Type.ARRAY, items: { type: Type.STRING } },
+        weaknesses: { type: Type.ARRAY, items: { type: Type.STRING } },
+        improvements: { type: Type.ARRAY, items: { type: Type.STRING } },
+        scores: {
+            type: Type.OBJECT,
+            properties: {
+                structure: { type: Type.NUMBER, description: "Score for structure and logical flow (1-10)" },
+                creativity: { type: Type.NUMBER, description: "Score for originality and innovation (1-10)" },
+                strategy: { type: Type.NUMBER, description: "Score for business acumen and strategic thinking (1-10)" },
+                prioritization: { type: Type.NUMBER, description: "Score for justifying decisions and tradeoffs (1-10)" },
+                communication: { type: Type.NUMBER, description: "Score for clarity and conciseness (1-10)" },
+            },
+        },
+    };
+
+    if (isFullInterview) {
+        properties.overallRating = { type: Type.NUMBER, description: "Overall rating for the full interview (1-5)" };
+    }
 
     try {
         const response = await ai.models.generateContent({
@@ -197,21 +320,7 @@ export const getAssessment = async (
                 responseMimeType: "application/json",
                 responseSchema: {
                     type: Type.OBJECT,
-                    properties: {
-                        strengths: { type: Type.ARRAY, items: { type: Type.STRING } },
-                        weaknesses: { type: Type.ARRAY, items: { type: Type.STRING } },
-                        improvements: { type: Type.ARRAY, items: { type: Type.STRING } },
-                        scores: {
-                            type: Type.OBJECT,
-                            properties: {
-                                structure: { type: Type.NUMBER, description: "Score for structure and logical flow (1-10)" },
-                                creativity: { type: Type.NUMBER, description: "Score for originality and innovation (1-10)" },
-                                strategy: { type: Type.NUMBER, description: "Score for business acumen and strategic thinking (1-10)" },
-                                prioritization: { type: Type.NUMBER, description: "Score for justifying decisions and tradeoffs (1-10)" },
-                                communication: { type: Type.NUMBER, description: "Score for clarity and conciseness (1-10)" },
-                            },
-                        },
-                    },
+                    properties: properties,
                 },
             },
         });

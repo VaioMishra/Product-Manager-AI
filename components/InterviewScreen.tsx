@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { User, InterviewCategory, FlowStep } from '../types';
 import PracticeMode from './PracticeMode';
@@ -35,11 +34,11 @@ const InterviewScreen: React.FC<InterviewScreenProps> = ({ user, category, quest
 
   return (
     <div className="animate-fade-in space-y-6">
-      <div className="p-6 bg-base-200 border border-base-300 rounded-lg shadow-md">
+      <div className="p-6 bg-surface-primary border border-border-primary rounded-xl shadow-md">
         <div className="flex justify-between items-start">
             <div>
                 <p className="text-sm font-semibold text-brand-primary">{category}</p>
-                <h2 className="text-xl md:text-2xl font-bold mt-1 text-content-100">{question}</h2>
+                <h2 className="text-xl md:text-2xl font-bold mt-1 text-text-primary">{question}</h2>
             </div>
             <Button onClick={onBack} variant="secondary" size="sm">
                 Change Question

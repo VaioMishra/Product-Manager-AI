@@ -20,23 +20,23 @@ const ProgressBar: React.FC<ProgressBarProps> = ({ steps, currentStep }) => {
                 className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-500 transform
                   ${isActive ? 'bg-brand-primary ring-4 ring-brand-primary/30 scale-110' : ''}
                   ${isCompleted ? 'bg-brand-secondary' : ''}
-                  ${isFuture ? 'bg-base-300' : ''}
+                  ${isFuture ? 'bg-surface-secondary' : ''}
                 `}
                 aria-current={isActive ? 'step' : false}
               >
                 {isCompleted ? (
                   <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
                 ) : (
-                  <span className={`font-bold ${isActive ? 'text-white' : 'text-content-200'}`}>{index + 1}</span>
+                  <span className={`font-bold ${isActive ? 'text-white' : 'text-text-secondary'}`}>{index + 1}</span>
                 )}
               </div>
-              <p className={`mt-2 text-[10px] sm:text-xs font-medium w-16 sm:w-20 leading-tight transition-colors duration-500 ${isActive ? 'text-content-100' : 'text-content-200'}`}>
+              <p className={`mt-2 text-[10px] sm:text-xs font-medium w-16 sm:w-20 leading-tight transition-colors duration-500 ${isActive ? 'text-text-primary' : 'text-text-secondary'}`}>
                 {step}
               </p>
             </div>
             {index < steps.length - 1 && (
               <div className={`flex-1 h-1 transition-colors duration-500 mx-1
-                ${isCompleted || isActive ? 'bg-brand-primary' : 'bg-base-300'}
+                ${isCompleted || isActive ? 'bg-brand-primary' : 'bg-border-primary'}
               `}></div>
             )}
           </React.Fragment>

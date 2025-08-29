@@ -29,6 +29,7 @@ export interface Feedback {
     prioritization: number;
     communication: number;
   };
+  overallRating?: number; // Scale of 1-5 for full interview mode
 }
 
 export interface Question {

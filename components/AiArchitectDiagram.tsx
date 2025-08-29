@@ -27,7 +27,7 @@ const AiArchitectDiagram: React.FC<AiArchitectDiagramProps> = ({ currentStep, is
     <path
       d={d}
       strokeWidth={isPathActive(step) ? 4 : 2}
-      className={`transition-all duration-300 ${isPathActive(step) ? 'stroke-brand-secondary animate-march' : 'stroke-base-300'}`}
+      className={`transition-all duration-300 ${isPathActive(step) ? 'stroke-brand-secondary animate-march' : 'stroke-border-primary'}`}
       fill="none"
       markerEnd="url(#arrow)"
     />
@@ -36,21 +36,21 @@ const AiArchitectDiagram: React.FC<AiArchitectDiagramProps> = ({ currentStep, is
   const Node = ({ x, y, icon, title, subtitle, activeSteps, isPulsing = false }: { x: number, y: number, icon: React.ReactNode, title: string, subtitle: string, activeSteps: FlowStep[], isPulsing?: boolean }) => (
      <g transform={`translate(${x}, ${y})`}>
         <rect x="-75" y="-35" width="150" height="70" rx="10" 
-            className={`transition-all duration-300 ${isNodeActive(activeSteps) ? 'fill-brand-primary/10 stroke-brand-primary' : 'fill-base-200 stroke-base-300'} ${isPulsing ? 'animate-pulse-node' : ''}`}
+            className={`transition-all duration-300 ${isNodeActive(activeSteps) ? 'fill-brand-primary/10 stroke-brand-primary' : 'fill-surface-primary stroke-border-primary'} ${isPulsing ? 'animate-pulse-node' : ''}`}
             strokeWidth="2"
         />
-        <g className="text-content-100">{icon}</g>
-        <text x="0" y="15" textAnchor="middle" className="fill-content-100 font-bold text-sm">{title}</text>
-        <text x="0" y="30" textAnchor="middle" className="fill-content-200 text-xs">{subtitle}</text>
+        <g className="text-text-primary">{icon}</g>
+        <text x="0" y="15" textAnchor="middle" className="fill-text-primary font-bold text-sm">{title}</text>
+        <text x="0" y="30" textAnchor="middle" className="fill-text-secondary text-xs">{subtitle}</text>
     </g>
   );
 
   const isBrainIdle = isPlaying && currentStep === 'idle';
 
   return (
-    <div className="p-4 bg-base-100/50 rounded-lg relative border border-base-300 animate-fade-in">
+    <div className="p-4 bg-bg-primary rounded-lg relative border border-border-primary animate-fade-in">
       <div className="absolute top-4 right-4 z-10">
-        <button onClick={onTogglePlay} className="flex items-center gap-2 bg-base-300 px-3 py-1.5 rounded-lg text-content-100 hover:bg-base-300/80 transition-colors">
+        <button onClick={onTogglePlay} className="flex items-center gap-2 bg-surface-secondary px-3 py-1.5 rounded-lg text-text-primary hover:bg-border-primary transition-colors">
           {isPlaying ? <PauseIcon className="w-5 h-5" /> : <PlayIcon className="w-5 h-5" />}
           <span className="text-sm font-medium">{isPlaying ? 'Pause Flow' : 'Play Flow'}</span>
         </button>
@@ -71,7 +71,7 @@ const AiArchitectDiagram: React.FC<AiArchitectDiagramProps> = ({ currentStep, is
         <Path d="M 400 185 V 315" step="service_to_ui" />
       </svg>
        {isPlaying && currentStep === 'idle' && (
-        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 w-full px-4 text-center text-sm text-content-200">
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 w-full px-4 text-center text-sm text-text-secondary">
             <p>Go to the 'Practice Mode' tab, send a message, and watch the data flow here in real-time!</p>
         </div>
       )}

@@ -31,8 +31,8 @@ const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete }) => {
     <div className="flex justify-center items-center h-full animate-fade-in">
       <Card className="max-w-md w-full">
         <div className="p-8">
-          <h2 className="text-2xl font-bold text-center mb-2 text-content-100">Welcome, Future PM!</h2>
-          <p className="text-center text-content-200 mb-6">Let's get you ready for your next big interview.</p>
+          <h2 className="text-2xl font-bold text-center mb-2 text-text-primary">Welcome, Future PM!</h2>
+          <p className="text-center text-text-secondary mb-6">Let's get you ready for your next big interview.</p>
           <form onSubmit={handleSubmit} className="space-y-6">
             <Input
               label="What's your name?"

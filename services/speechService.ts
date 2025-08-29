@@ -45,11 +45,17 @@ class SpeechService {
             };
             
             this.utterance.onerror = (event: SpeechSynthesisErrorEvent) => {
+                // The 'interrupted' error is expected when we programmatically cancel
+                // an utterance to start a new one. We can safely ignore it.
+                if (event.error === 'interrupted') {
+                    return;
+                }
+
                 console.error(
                     `SpeechSynthesisUtterance error: ${event.error}.`,
                     `Utterance text: "${event.utterance.text.substring(0, 100)}..."`
                 );
-                // Also call onEnd on error to reset UI state
+                // For other, genuine errors, treat it as the end of speech.
                 if (onEndCallback) {
                     onEndCallback();
                 }

@@ -43,7 +43,7 @@ const HelpGuide: React.FC<HelpGuideProps> = ({ onClose, question, category, user
             return (
                 <div className="flex flex-col justify-center items-center min-h-[300px]">
                     <Spinner />
-                    <p className="mt-4 text-content-200">
+                    <p className="mt-4 text-text-secondary">
                         {step === 0 ? "Loading expert approach..." : "Generating sample answer..."}
                     </p>
                 </div>
@@ -53,8 +53,8 @@ const HelpGuide: React.FC<HelpGuideProps> = ({ onClose, question, category, user
         if (step === 0) {
             return (
                 <div>
-                    <h4 className="font-bold text-lg mb-4 text-content-100">How to Approach This Question</h4>
-                    <div className="prose prose-invert max-w-none prose-p:text-content-200">
+                    <h4 className="font-bold text-lg mb-4 text-text-primary">How to Approach This Question</h4>
+                    <div className="prose prose-invert max-w-none prose-p:text-text-secondary">
                         <p className="whitespace-pre-wrap">{explanation}</p>
                     </div>
                     <div className="mt-6 flex justify-end">
@@ -67,8 +67,8 @@ const HelpGuide: React.FC<HelpGuideProps> = ({ onClose, question, category, user
         if (step === 1) {
             return (
                  <div>
-                    <h4 className="font-bold text-lg mb-4 text-content-100">Sample Expert Answer</h4>
-                     <div className="prose prose-invert max-w-none prose-p:text-content-200 bg-base-100 p-4 rounded-lg">
+                    <h4 className="font-bold text-lg mb-4 text-text-primary">Sample Expert Answer</h4>
+                     <div className="prose prose-invert max-w-none prose-p:text-text-secondary bg-bg-primary p-4 rounded-lg">
                         <p className="whitespace-pre-wrap">{sampleAnswer}</p>
                      </div>
                      <div className="mt-6 flex justify-end">

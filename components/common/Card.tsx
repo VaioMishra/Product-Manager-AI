@@ -7,7 +7,17 @@ interface CardProps {
 
 const Card = React.forwardRef<HTMLDivElement, CardProps>(({ children, className }, ref) => {
   return (
-    <div ref={ref} className={`bg-base-200 border border-base-300 rounded-xl shadow-lg ${className || ''}`}>
+    <div 
+      ref={ref} 
+      className={`
+        bg-surface-primary border border-border-primary rounded-xl shadow-lg 
+        transition-all duration-300 
+        shadow-black/5
+        dark:bg-gradient-to-b dark:from-surface-primary dark:to-surface-primary/95 
+        dark:hover:border-brand-primary/30 dark:hover:shadow-2xl dark:hover:shadow-brand-primary/10 
+        ${className || ''}
+      `}
+    >
       {children}
     </div>
   );

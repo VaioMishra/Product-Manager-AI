@@ -24,7 +24,7 @@ const FormattedMessage: React.FC<{ text: string }> = ({ text }) => {
       .replace(/~~(.*?)~~/g, '<s>$1</s>')         // Strikethrough
       .replace(
         /`(.*?)`/g,
-        '<code class="bg-base-300 text-brand-secondary px-1 py-0.5 rounded text-sm font-mono">$1</code>'
+        '<code class="bg-surface-secondary text-brand-secondary px-1 py-0.5 rounded text-sm font-mono">$1</code>'
       ); // Inline Code
     return <span dangerouslySetInnerHTML={{ __html: html }} />;
   };
@@ -48,7 +48,7 @@ const FormattedMessage: React.FC<{ text: string }> = ({ text }) => {
   const flushBlockquote = () => {
     if (blockquoteItems.length > 0) {
       elements.push(
-        <blockquote key={`quote-${elements.length}`} className="pl-4 border-l-4 border-base-300 text-content-200 my-2">
+        <blockquote key={`quote-${elements.length}`} className="pl-4 border-l-4 border-border-primary text-text-secondary my-2">
           {blockquoteItems}
         </blockquote>
       );

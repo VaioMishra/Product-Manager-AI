@@ -30,17 +30,17 @@ const Modal: React.FC<ModalProps> = ({ title, onClose, children }) => {
       aria-labelledby="modal-title"
     >
       <div 
-        className="bg-base-200 border border-base-300 rounded-xl shadow-2xl w-full max-w-3xl max-h-[90vh] flex flex-col" 
+        className="bg-surface-primary border border-border-primary rounded-xl shadow-2xl w-full max-w-3xl max-h-[90vh] flex flex-col" 
         onClick={e => e.stopPropagation()}
       >
-        <header className="flex-shrink-0 flex justify-between items-center p-4 border-b border-base-300">
-          <h3 id="modal-title" className="text-xl font-bold text-content-100">{title}</h3>
+        <header className="flex-shrink-0 flex justify-between items-center p-4 border-b border-border-primary">
+          <h3 id="modal-title" className="text-xl font-bold text-text-primary">{title}</h3>
           <button 
             onClick={onClose} 
-            className="p-1 rounded-full hover:bg-base-300 transition-colors"
+            className="p-1 rounded-full hover:bg-surface-secondary transition-colors"
             aria-label="Close modal"
           >
-            <XMarkIcon className="w-6 h-6 text-content-200" />
+            <XMarkIcon className="w-6 h-6 text-text-secondary" />
           </button>
         </header>
         <main className="p-6 overflow-y-auto">
