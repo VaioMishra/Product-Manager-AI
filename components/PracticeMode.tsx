@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { User, InterviewCategory, ChatMessage, Feedback, FlowStep } from '../types';
+import { User, InterviewCategory, ChatMessage, Feedback, FlowStep, PracticeInterview } from '../types';
 import { getInterviewResponse, getAssessment } from '../services/geminiService';
 import { speechService } from '../services/speechService';
 import Button from './common/Button';
@@ -20,6 +20,7 @@ import { StrikethroughIcon } from './icons/StrikethroughIcon';
 import { CodeBracketIcon } from './icons/CodeBracketIcon';
 import { OrderedListIcon } from './icons/OrderedListIcon';
 import FormattedMessage from './common/FormattedMessage';
+import { useInterviewHistory } from '../hooks/useInterviewHistory';
 
 interface PracticeModeProps {
   user: User;
@@ -54,6 +55,7 @@ const PracticeMode: React.FC<PracticeModeProps> = ({ user, category, question, o
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
   const [userInput, setUserInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const { addSession } = useInterviewHistory();
   
   const interviewStages = ["Clarify", "Structure", "Ideate", "Prioritize", "Summarize"];
   const [currentStep, setCurrentStep] = useState(0);
@@ -134,6 +136,20 @@ const PracticeMode: React.FC<PracticeModeProps> = ({ user, category, question, o
       .map(msg => `${msg.sender === 'user' ? 'User' : 'Bot'}: ${msg.text}`)
       .join('\n\n');
     const result = await getAssessment(question, conversation, user, category);
+
+    if (result) {
+      const session: PracticeInterview = {
+        id: new Date().toISOString(),
+        type: 'practice',
+        date: new Date().toISOString(),
+        question,
+        category,
+        chatHistory: chatHistory,
+        feedback: result,
+      };
+      addSession(session);
+    }
+    
     setFeedback(result);
     setIsLoading(false);
   };

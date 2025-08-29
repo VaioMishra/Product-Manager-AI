@@ -32,6 +32,27 @@ export interface Feedback {
   overallRating?: number; // Scale of 1-5 for full interview mode
 }
 
+export interface PracticeInterview {
+  id: string;
+  type: 'practice';
+  date: string;
+  question: string;
+  category: InterviewCategory;
+  chatHistory: ChatMessage[];
+  feedback: Feedback;
+}
+
+export interface FullInterview {
+  id: string;
+  type: 'full';
+  date: string;
+  chatHistory: ChatMessage[];
+  feedback: Feedback;
+}
+
+export type InterviewSession = PracticeInterview | FullInterview;
+
+
 export interface Question {
   text: string;
   category: InterviewCategory;

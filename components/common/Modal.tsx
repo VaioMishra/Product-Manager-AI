@@ -30,7 +30,7 @@ const Modal: React.FC<ModalProps> = ({ title, onClose, children }) => {
       aria-labelledby="modal-title"
     >
       <div 
-        className="bg-surface-primary border border-border-primary rounded-xl shadow-2xl w-full max-w-3xl max-h-[90vh] flex flex-col" 
+        className="bg-surface-primary border border-border-primary rounded-xl shadow-2xl w-full max-w-5xl max-h-[90vh] flex flex-col" 
         onClick={e => e.stopPropagation()}
       >
         <header className="flex-shrink-0 flex justify-between items-center p-4 border-b border-border-primary">

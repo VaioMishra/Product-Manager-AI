@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { User, ChatMessage, Feedback } from '../types';
+import { User, ChatMessage, Feedback, FullInterview } from '../types';
 import { generateQuestionsFromResume, getFullInterviewResponse, getAssessment } from '../services/geminiService';
 import { uploadResume } from '../services/googleApiService';
 import { speechService } from '../services/speechService';
@@ -15,6 +15,8 @@ import { ClockIcon } from './icons/ClockIcon';
 import VoiceVisualizer from './VoiceVisualizer';
 import { UserIcon } from './icons/UserIcon';
 import FormattedMessage from './common/FormattedMessage';
+import { PRO_TIPS } from '../constants';
+import { useInterviewHistory } from '../hooks/useInterviewHistory';
 
 interface FullInterviewModeProps {
   user: User;
@@ -61,6 +63,7 @@ const FullInterviewMode: React.FC<FullInterviewModeProps> = ({ user, onBack }) =
   const [uploadStatus, setUploadStatus] = useState('');
   const [processingError, setProcessingError] = useState('');
   const [isDragging, setIsDragging] = useState(false);
+  const [proTip, setProTip] = useState('');
   
   const [questionPool, setQuestionPool] = useState<string[]>([]);
   const [profileSummary, setProfileSummary] = useState('');
@@ -72,9 +75,10 @@ const FullInterviewMode: React.FC<FullInterviewModeProps> = ({ user, onBack }) =
   
   const [feedback, setFeedback] = useState<Feedback | null>(null);
 
+  const { addSession } = useInterviewHistory();
   const recognitionRef = useRef<SpeechRecognition | null>(null);
   const silenceTimerRef = useRef<NodeJS.Timeout | null>(null);
-  const transcriptEndRef = useRef<HTMLDivElement>(null);
+  const transcriptEndRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     transcriptEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -155,6 +159,10 @@ const FullInterviewMode: React.FC<FullInterviewModeProps> = ({ user, onBack }) =
 
   const handleResumeSubmit = async () => {
     if (!resumeFile) return;
+
+    const randomIndex = Math.floor(Math.random() * PRO_TIPS.length);
+    setProTip(PRO_TIPS[randomIndex]);
+    
     setInterviewState('processing_resume');
     setProcessingError('');
 
@@ -214,10 +222,24 @@ const FullInterviewMode: React.FC<FullInterviewModeProps> = ({ user, onBack }) =
         .join('\n\n');
 
       const result = await getAssessment("Full PM Interview Performance", conversation, user, "Full Interview");
-      setFeedback(result);
+      
+      if (result) {
+        setFeedback(result);
+        const session: FullInterview = {
+          id: new Date().toISOString(),
+          type: 'full',
+          date: new Date().toISOString(),
+          chatHistory: chatHistory,
+          feedback: result
+        };
+        addSession(session);
+      } else {
+        setFeedback(null); // Explicitly set to null on error
+      }
+      
       setInterviewState('feedback_ready');
 
-  }, [chatHistory, user]);
+  }, [chatHistory, user, addSession]);
 
   useEffect(() => {
     if (interviewState === 'interviewing' && timeLeft > 0) {
@@ -332,9 +354,18 @@ const FullInterviewMode: React.FC<FullInterviewModeProps> = ({ user, onBack }) =
             );
         case 'processing_resume': return (
             <Card className="max-w-xl mx-auto text-center p-8">
-                <Spinner />
-                <h2 className="text-2xl font-bold mt-4">Processing Your Resume...</h2>
-                <p className="text-text-secondary mt-2">{uploadStatus}</p>
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-primary mx-auto"></div>
+                <h2 className="text-2xl font-bold mt-6">Processing Your Resume...</h2>
+                <p className="text-text-secondary mt-2 mb-8">{uploadStatus}</p>
+
+                {proTip && (
+                  <div className="p-5 bg-surface-secondary/50 rounded-lg text-left animate-fade-in">
+                    <h3 className="text-lg font-semibold mb-2 text-text-primary">
+                      💡 Pro Tip
+                    </h3>
+                    <p className="text-text-secondary">{proTip}</p>
+                  </div>
+                )}
             </Card>
         );
         case 'intro': return (
@@ -417,7 +448,14 @@ const FullInterviewMode: React.FC<FullInterviewModeProps> = ({ user, onBack }) =
         );
         case 'feedback_ready': return (
             <div>
-                {feedback && <FeedbackDisplay feedback={feedback} user={user} />}
+                {feedback ? (
+                  <FeedbackDisplay feedback={feedback} user={user} />
+                ) : (
+                  <Card className="p-8 text-center">
+                    <h3 className="text-xl font-bold mb-2">Feedback Error</h3>
+                    <p className="text-text-secondary">Sorry, an error occurred while generating your feedback report.</p>
+                  </Card>
+                )}
                 <div className="text-center mt-6 flex gap-4 justify-center">
                     <Button onClick={() => setInterviewState('resume_upload')} variant="secondary">Start New Interview</Button>
                     <Button onClick={onBack}>Back to Main Menu</Button>
