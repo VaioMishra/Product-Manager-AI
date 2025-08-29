@@ -30,6 +30,7 @@ declare global {
   interface Window {
     SpeechRecognition: { new(): SpeechRecognition };
     webkitSpeechRecognition: { new(): SpeechRecognition };
+    webkitAudioContext: { new(): AudioContext };
   }
   interface SpeechRecognition {
     continuous: boolean;
@@ -79,6 +80,7 @@ const FullInterviewMode: React.FC<FullInterviewModeProps> = ({ user, onBack }) =
   const recognitionRef = useRef<SpeechRecognition | null>(null);
   const silenceTimerRef = useRef<NodeJS.Timeout | null>(null);
   const transcriptEndRef = useRef<HTMLDivElement | null>(null);
+  const audioContextRef = useRef<AudioContext | null>(null);
 
   useEffect(() => {
     transcriptEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -198,6 +200,14 @@ const FullInterviewMode: React.FC<FullInterviewModeProps> = ({ user, onBack }) =
 
   const startInterview = async () => {
     speechService.unlockAudio();
+    // Initialize AudioContext on a user gesture to ensure browser compatibility
+    if (!audioContextRef.current) {
+        try {
+            audioContextRef.current = new (window.AudioContext || window.webkitAudioContext)();
+        } catch (e) {
+            console.warn("Web Audio API is not supported in this browser.");
+        }
+    }
     
     try {
         await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -250,6 +260,44 @@ const FullInterviewMode: React.FC<FullInterviewModeProps> = ({ user, onBack }) =
     }
   }, [interviewState, timeLeft, endInterview]);
   
+  // Effect for timer sounds
+  useEffect(() => {
+    const playSound = (freq: number, duration: number, type: OscillatorType = 'sine') => {
+      if (!audioContextRef.current) return;
+      const context = audioContextRef.current;
+      // Resume context if it's suspended, which can happen on page load
+      if (context.state === 'suspended') {
+        context.resume();
+      }
+      
+      const oscillator = context.createOscillator();
+      const gainNode = context.createGain();
+
+      oscillator.connect(gainNode);
+      gainNode.connect(context.destination);
+
+      oscillator.type = type;
+      oscillator.frequency.value = freq;
+      gainNode.gain.setValueAtTime(0, context.currentTime);
+      gainNode.gain.linearRampToValueAtTime(0.3, context.currentTime + 0.01);
+
+      oscillator.start(context.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.00001, context.currentTime + duration);
+      oscillator.stop(context.currentTime + duration);
+    };
+    
+    // Single chime for 5-minute warning
+    if (timeLeft === 300) {
+      playSound(880, 0.2, 'triangle'); // A higher, softer chime
+    }
+    
+    // Ticking for last 10 seconds
+    if (timeLeft > 0 && timeLeft <= 10) {
+      playSound(440, 0.1); // A short tick
+    }
+
+  }, [timeLeft]);
+
   // Initialize speech recognition.
   useEffect(() => {
     const SpeechRecognitionAPI = window.SpeechRecognition || window.webkitSpeechRecognition;
