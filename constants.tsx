@@ -25,6 +25,10 @@ export const QUESTION_BANK: Question[] = [
   { text: "What would you build to improve the job search experience on LinkedIn?", category: InterviewCategory.PRODUCT_SENSE, company: "Microsoft", difficulty: "Medium" },
   { text: "Imagine you are the PM for Spotify Podcasts. What feature would you build next?", category: InterviewCategory.PRODUCT_SENSE, company: "Spotify", difficulty: "Medium" },
   { text: "How would you monetize a free-to-use meditation app like Calm without using ads?", category: InterviewCategory.PRODUCT_SENSE, company: "Calm", difficulty: "Hard" },
+  { text: "You are the PM for Generative AI at Adobe. How would you integrate AI into Photoshop to create a '10x' better experience for professional designers?", category: InterviewCategory.PRODUCT_SENSE, company: "Adobe", difficulty: "Hard" },
+  { text: "Design a product to help local artisans and creators sell their products online, competing with Etsy.", category: InterviewCategory.PRODUCT_SENSE, company: "Startup", difficulty: "Medium" },
+  { text: "How would you improve trust and safety on a platform like Facebook Marketplace?", category: InterviewCategory.PRODUCT_SENSE, company: "Meta", difficulty: "Medium" },
+  { text: "Imagine you're the first PM at a startup building a 'Duolingo for Climate Change'. What's the MVP you would build?", category: InterviewCategory.PRODUCT_SENSE, company: "Startup", difficulty: "Easy" },
 
   // Root Cause Analysis (RCA)
   { text: "There is a 10% drop in food delivery orders on Swiggy. How would you investigate?", category: InterviewCategory.ROOT_CAUSE_ANALYSIS, company: "Swiggy", difficulty: "Medium" },
@@ -40,6 +44,9 @@ export const QUESTION_BANK: Question[] = [
   { text: "Your app's rating on the Google Play Store dropped from 4.5 to 3.8 in a week. What happened?", category: InterviewCategory.ROOT_CAUSE_ANALYSIS, company: "General", difficulty: "Hard" },
   { text: "Users are spending less time on the Netflix homepage. How would you diagnose the problem?", category: InterviewCategory.ROOT_CAUSE_ANALYSIS, company: "Netflix", difficulty: "Medium" },
   { text: "The churn rate for your subscription service has increased by 5%. What are the potential causes?", category: InterviewCategory.ROOT_CAUSE_ANALYSIS, company: "General", difficulty: "Medium" },
+  { text: "The sign-up to trial conversion rate for a B2B SaaS product dropped from 15% to 12%. How would you investigate?", category: InterviewCategory.ROOT_CAUSE_ANALYSIS, company: "SaaS", difficulty: "Medium" },
+  { text: "After a recent app update, there's a 20% spike in user-reported crashes on Android devices. What's your plan?", category: InterviewCategory.ROOT_CAUSE_ANALYSIS, company: "General", difficulty: "Medium" },
+  { text: "YouTube TV has seen a 5% increase in subscription cancellations over the past quarter. Why might this be happening?", category: InterviewCategory.ROOT_CAUSE_ANALYSIS, company: "Google", difficulty: "Hard" },
 
   // Product Design
   { text: "Design a new feature for Spotify to enhance music discovery for niche genres.", category: InterviewCategory.PRODUCT_DESIGN, company: "Spotify", difficulty: "Medium" },
@@ -55,6 +62,9 @@ export const QUESTION_BANK: Question[] = [
   { text: "Design a loyalty program for a coffee shop chain.", category: InterviewCategory.PRODUCT_DESIGN, company: "General", difficulty: "Medium" },
   { text: "Design a product to help users manage their personal finances and budget.", category: InterviewCategory.PRODUCT_DESIGN, company: "Fintech", difficulty: "Medium" },
   { text: "Design an interface for a self-driving car.", category: InterviewCategory.PRODUCT_DESIGN, company: "Tesla", difficulty: "Hard" },
+  { text: "Design a feature for Spotify that uses AI to create personalized concert experiences for users.", category: InterviewCategory.PRODUCT_DESIGN, company: "Spotify", difficulty: "Hard" },
+  { text: "Design a solution to help remote teams combat burnout and improve well-being.", category: InterviewCategory.PRODUCT_DESIGN, company: "General", difficulty: "Medium" },
+  { text: "Design a 'smart' grocery shopping list feature for a mobile app.", category: InterviewCategory.PRODUCT_DESIGN, company: "General", difficulty: "Easy" },
 
   // Product Strategy
   { text: "You are the CEO of Slack. How do you plan to compete with Microsoft Teams?", category: InterviewCategory.PRODUCT_STRATEGY, company: "Salesforce", difficulty: "Hard" },
@@ -70,6 +80,9 @@ export const QUESTION_BANK: Question[] = [
   { text: "What's your strategy to increase the adoption of Google Workspace among startups?", category: InterviewCategory.PRODUCT_STRATEGY, company: "Google", difficulty: "Medium" },
   { text: "How would you position a new streaming service against giants like Netflix and Disney+?", category: InterviewCategory.PRODUCT_STRATEGY, company: "General", difficulty: "Hard" },
   { text: "Develop a 3-year product strategy for a food-tech company like Zomato.", category: InterviewCategory.PRODUCT_STRATEGY, company: "Zomato", difficulty: "Hard" },
+  { text: "You are the PM for Tesla's Cybertruck. What's your product strategy for entering the European market?", category: InterviewCategory.PRODUCT_STRATEGY, company: "Tesla", difficulty: "Hard" },
+  { text: "How should LinkedIn leverage generative AI to maintain its lead in the professional networking space?", category: InterviewCategory.PRODUCT_STRATEGY, company: "Microsoft", difficulty: "Hard" },
+  { text: "A new, well-funded startup is offering a 'Notion-killer' product for free. You are the PM at Notion. What's your competitive strategy?", category: InterviewCategory.PRODUCT_STRATEGY, company: "Notion", difficulty: "Hard" },
 
   // Estimation
   { text: "Estimate the number of Uber rides in Delhi on a typical weekday.", category: InterviewCategory.ESTIMATION, company: "Uber", difficulty: "Medium" },
@@ -85,4 +98,7 @@ export const QUESTION_BANK: Question[] = [
   { text: "Estimate the number of developers in India.", category: InterviewCategory.ESTIMATION, company: "General", difficulty: "Medium" },
   { text: "Estimate the annual revenue of the Taj Mahal.", category: InterviewCategory.ESTIMATION, company: "General", difficulty: "Easy" },
   { text: "Estimate the number of WhatsApp messages sent globally every hour.", category: InterviewCategory.ESTIMATION, company: "Meta", difficulty: "Hard" },
+  { text: "Estimate the number of electric vehicle charging stations in India by 2030.", category: InterviewCategory.ESTIMATION, company: "General", difficulty: "Medium" },
+  { text: "Estimate the annual carbon footprint of all data centers in the world.", category: InterviewCategory.ESTIMATION, company: "General", difficulty: "Hard" },
+  { text: "Estimate the number of Slack messages sent per day at a 500-person tech company.", category: InterviewCategory.ESTIMATION, company: "Salesforce", difficulty: "Easy" },
 ];

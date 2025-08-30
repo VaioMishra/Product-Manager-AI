@@ -78,7 +78,8 @@ const FullInterviewMode: React.FC<FullInterviewModeProps> = ({ user, onBack }) =
 
   const { addSession } = useInterviewHistory();
   const recognitionRef = useRef<SpeechRecognition | null>(null);
-  const silenceTimerRef = useRef<NodeJS.Timeout | null>(null);
+  // Fix: Replaced `NodeJS.Timeout` with `ReturnType<typeof setTimeout>` for browser compatibility.
+  const silenceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const transcriptEndRef = useRef<HTMLDivElement | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
 
